@@ -1,0 +1,66 @@
+Turn=[un, deux]{
+	etat=2;
+	init = 0;
+	0=un;
+	1=deux;
+	0->1[vers2];
+	1->1[vers2];
+	1->0[vers1];
+	0->0[vers1];
+	0->0[estCe1];
+	1->1[estCe2];
+};;
+
+Qx=[zero, un, deux]{
+    etat=3;
+	init=0;
+	0=zero;
+	1=un;
+	2=deux;
+	0->1[zeroVers1];
+    1->2[unVers2];
+	2->0[reinit];
+	1->1[estCe1];
+	2->2[estCe2];
+	0->0[estCe0Ou1];
+	0->0[estCe0];
+	1->1[estCe0Ou1];
+};;
+
+Processus=[crit, nonCrit, etape1, etape2]{
+    etat=4;
+    init=0;
+    0=nonCrit;
+    1=etape1;
+    2=etape2;
+    3=crit;
+    0->1[veutCrit];
+    1->2[versEtape2];
+    2->2[attente];
+    2->1[retourDeBoucle];
+    2->3[execCrit];
+    3->0[fin];
+};;
+
+Systeme=<Qx Q1, Qx Q2, Qx Q3, Turn T1, Turn T2, Processus N1, Processus N2, Processus N3>{
+    <zeroVers1,_,_,_,_,veutCrit,_,_>;                   // Q[1] = j
+    
+    <estCe1,_,_,vers1,_,versEtape2,_,_>;                // TURN[j] := 1
+    <estCe2,_,_,_,vers1,versEtape2,_,_>;
+    
+    <_,estCe2,_,_,_,attente,_,_>;                       // wait until (k!=i, Q[k] < j)
+    <_,_,estCe2,_,_,attente,_,_>;
+    <estCe1,estCe1,_,_,_,attente,_,_>;
+    <estCe1,_,estCe1,_,_,attente,_,_>;
+    
+    <estCe1,_,_,estCe1,_,attente,_,_>;                  // wait until TURN[j] != i
+    <estCe2,_,_,_,estCe2,attente,_,_>;
+    
+    <estCe2,estCe0Ou1,estCe0Ou1,_,_,execCrit,_,_>;      // Sortie de la boucle
+    <unVers2,estCe0,estCe0,_,_,retourDeBoucle,_,_>;     // Nouveau tour de boucle + Q[1] = j
+    
+    <reinit,_,_,_,_,fin,_,_>;                           // Fin de la section critique
+    
+};;
+
+todot nProcessSolution.dot Systeme;;
