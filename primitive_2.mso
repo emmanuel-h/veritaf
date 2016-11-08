@@ -34,4 +34,4 @@ Systeme=<Qx Q1, Qx Q2, Processus P1, Processus P2>{
     
 };;
 
-todot Systeme.dot Systeme;;
+todot primitive2.dot Systeme;;

@@ -4,21 +4,33 @@ Turn=[libre, uti1, uti2]{
 	0=libre;
 	1=uti1;
 	2=uti2;
-	0->1[Prend1];
-	0->2[Prend2];
+	0->1[prend1];
+	0->2[prend2];
+	1->1[estCe1];
+	2->2[estCe2];
+	1->2[prend2];
+	2->1[prend1];
 };;
 
-Processus=[crit, nonCrit]{
-	etat=2;
-	init=0;
-	0=nonCrit;
-	1=crit;
-	0->1[ExecCrit];
+Processus=[crit, nonCrit, attenteCrit]{
+    etat=3;
+    init=0;
+    0=nonCrit;
+    1=crit;
+    2=attenteCrit;
+    0->2[vaCrit];
+    2->1[execCrit];
+    2->2[attente];
 };;
 
 systeme = <Turn t, Processus p1, Processus p2>{
-	<Prend1, ExecCrit, _>;
-	<Prend2, _, ExecCrit>;
+    <prend1,vaCrit,_>;
+    <estCe1,attente,_>;
+    <estCe2,execCrit,_>;
+    
+    <prend2,_,vaCrit>;
+    <estCe2,_,attente>;
+    <estCe1,_,execCrit>;
 };;
 
-todot system.dot systeme;;
+todot primitive1.dot systeme;;
