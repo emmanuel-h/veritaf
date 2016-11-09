@@ -25,33 +25,29 @@ Qx=[vrai, faux]{
 	0->0[estCeFaux];
 };;
 
-Processus=[crit, nonCrit, attenteCrit,transition]{
-    etat=4;
+Processus=[crit, debut, fin, attenteCrit,transition]{
+    etat=5;
     init=2;
     0=attenteCrit;
     1=crit;
-    2=nonCrit;
+    2=debut;
     3=transition;
+    4=fin;
     2->3[vaTransition];
     3->0[vaCrit];
     0->1[execCrit];
-    1->2[fin];
-    0->0[attente];
+    1->4[fin];
 };;
 
 systeme=<Processus P1, Processus P2, Qx Q1, Qx Q2, Turn T>{
     <vaTransition,_,_,_,prend1>;
     <vaCrit,_,devientVrai,_,_>;
-    <attente,_,_,estCeVrai,_>;
-    <attente,_,_,_,estCe1>;
     <execCrit,_,_,estCeFaux,_>;
     <execCrit,_,_,_,estCe2>;
     <fin,_,devientFaux,_,_>;
     
     <_,vaTransition,_,_,prend2>;
     <_,vaCrit,_,devientVrai,_>;
-    <_,attente,estCeVrai,_,_>;
-    <_,attente,_,_,estCe2>;
     <_,execCrit,estCeFaux,_,_>;
     <_,execCrit,_,_,estCe1>;
     <_,fin,_,devientFaux,_>;
