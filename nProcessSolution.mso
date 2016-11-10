@@ -128,3 +128,10 @@ Systeme=<Qx Q1, Qx Q2, Qx Q3, Turn T1, Turn T2, Processus N1, Processus N2, Proc
 };;
 
 todot nProcessSolution.dot Systeme;;
+
+Systeme += crit <- AF(N1.fin && N2.fin && N3.fin);;
+
+sol = Systeme | crit;;
+
+
+todot TD2Ex1.dot sol;;
