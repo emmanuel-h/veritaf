@@ -33,15 +33,27 @@ systeme = <Turn t, Processus p1, Processus p2>{
 
 todot primitive1.dot systeme;;
 
-// Prouve qu'il n'est pas possible de finir avec les deux sections critiques (deadlock)
-systeme += fin1 <- EF(p1.fin && p2.fin);;
 
-// Quel que soit le chemin, un processus au moins a effectué sa section critique (Le programme termine)
-systeme += fin2 <- AF(p1.fin || p2.fin);;
+//Sureté 1 : Prouve qu'il n'est pas possible de finir avec les deux sections critiques (deadlock)
+systeme += surete1 <- EF(p1.fin && p2.fin);;
 
-// Il n'existe pas de chemin menant à deux exécutions critiques simultanées (Exclusion mutuelle)
-systeme += crit <- EF(p1.crit && p2.crit);;
+// Sureté 2 : Existe-t-il au moins un chemin menant à un deadlock
+systeme += surete2 <- EF(!EX(true) && (!p1.fin || !p2.fin));;
 
-sol = systeme | crit;;
+// Exclusion mutuelle : Il n'existe pas de chemin menant à deux exécutions critiques simultanées
+systeme += exclusionMutuelle <- EF(p1.crit && p2.crit);;
 
-todot ctl.dot sol;;
+// Equité Forte : Quel que soit le chemin, un processus au moins a effectué sa section critique
+systeme += equiteForte <- AF(p1.fin || p2.fin);;
+
+// Equité Faible : Il existe un chemin pour lequel p1 ou p2 peut exécuter sa section critique
+systeme += equiteFaible <- EF(p1.fin || p2.fin);;
+
+todot ctl.dot systeme;;
+
+/*
+Propriété de sûreté
+Propriété d'exclusion mutuelle
+Propriété d'équité : -Faible EF
+                     -Forte  AF
+*/
