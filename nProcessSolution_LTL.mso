@@ -34,12 +34,12 @@ Qx=[zero, un, deux]{
 	1->1[estCe0Ou1];
 };;
 
-Processus=[crit, debut, fin, etape1, etape2]{
+Processus=[crit, debut, fin, etape1, attente]{
     etat=5;
     init=0;
     0=debut;
     1=etape1;
-    2=etape2;
+    2=attente;
     3=crit;
     4=fin;
     0->1[veutCrit];
@@ -49,7 +49,7 @@ Processus=[crit, debut, fin, etape1, etape2]{
     3->4[fin];
 };;
 
-Systeme=<Qx Q1, Qx Q2, Qx Q3, Turn T1, Turn T2, Processus N1, Processus N2, Processus N3>{
+Systeme=<Qx Q1, Qx Q2, Qx Q3, Turn T1, Turn T2, Processus P1, Processus P2, Processus P3>{
 
     // N1
     
@@ -102,5 +102,67 @@ Systeme=<Qx Q1, Qx Q2, Qx Q3, Turn T1, Turn T2, Processus N1, Processus N2, Proc
     
   
 };;
+// Surete 1 : Il existe au moins un chemin menant à la fin des deux processus
+//Systeme += surete <- EF(P1.fin && P2.fin && P3.fin);;
 
-todot nProcessSolution.dot Systeme;;
+autosurete = {
+	etat = 1;
+	acc = 0;
+	init = 0;
+	0 - (!P1 || !P2 || !P3) -> 0;
+};;
+
+//sysauto = automaton Systeme;;
+//resultatsurete = sysauto && autosurete[P1 <- P1.fin,P2 <- P2.fin,P3 <- P3.fin];;
+//resultat = reduce resultatsurete;;
+
+//todot resultatnproc.dot resultat;;
+
+
+// Exclusion mutuelle : Il n'existe pas de chemin menant à deux exécutions critiques simultanées
+Systeme += exclusionMutuelle <- !((EF(P2.crit && P3.crit)) || (EF(P1.crit && P3.crit)) || (EF(P1.crit && P2.crit)));;
+
+automutex = {
+	etat = 2;
+	acc = 1;
+	init = 0;
+	0 - (!P2 && !P3) || (!P1 && !P2) || (!P1 && !P3) -> 0;
+	0 - (P2 && P3) || (P1 && P2) || (P1 && P3) -> 1;
+	1 - true -> 1 [0];
+};;
+
+//resultatmutex = sysauto && automutex[P1 <- P1.crit,P2<-P2.crit,P3<-P3.crit];;
+//resultat = reduce resultatmutex;;
+
+//todot resultat.dot automutex;;
+//todot resultat.dot resultat;;
+
+
+// Equité Forte : Quel que soit le chemin, un processus au moins a effectué sa section critique
+//Systeme += equiteForte <- AG((P1.attente -> AF(P1.crit)) &&(P2.attente -> AF(P2.crit)) && (P3.attente -> AF(P3.crit)));;
+// Equité Faible : Il existe un chemin pour lequel p1 ou p2 peut exécuter sa section critique
+//Systeme += equiteFaible <- AG((P1.attente -> EF(P1.crit)) && (P2.attente -> EF(P2.crit)) && (P3.attente -> AF(P3.crit)));;
+
+autoequite = {
+	etat = 4;
+	acc = 1;
+	init = 0;
+	0 - true -> 0;
+	0 - P1 && !P11 -> 1;
+	0 - P2 && !P21 -> 2;
+	0 - P3 && !P31 -> 3;
+	1 - !P11 -> 1 [0];
+	2 - !P21 -> 2 [0];
+	3 - !P31 -> 3 [0];
+};;
+
+//todot resultat.dot autoequite;;
+
+resultatequite = sysauto && autoequite[P1 <- P1.attente,P11 <- P1.crit,P2 <- P2.attente,P21 <- P2.crit,P3 <- P3.attente, P31 <- P3.crit];;
+resultat = reduce resultatequite;;
+
+todot resultat.dot resultat;;
+
+/*
+todot nProcessSolutionCTL.dot Systeme;;
+*/

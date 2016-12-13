@@ -9,10 +9,10 @@ Qx=[vrai, faux]{
 	0->0[estCeFaux];
 };;
 
-Processus=[crit, debut, fin, attenteCrit]{
+Processus=[crit, debut, fin, attente]{
     etat=4;
     init=2;
-    0=attenteCrit;
+    0=attente;
     1=crit;
     2=debut;
     3=fin;

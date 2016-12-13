@@ -1,3 +1,19 @@
+Turn=[libre, uti1, uti2]{
+	etat=3;
+	init = 0;
+	0=libre;
+	1=uti1;
+	2=uti2;
+	0->1[prend1];
+	0->2[prend2];
+	1->1[prend1];
+	2->2[prend2];
+	1->1[estCe1];
+	2->2[estCe2];
+	1->2[prend2];
+	2->1[prend1];
+};;
+
 Qx=[vrai, faux]{
     etat=2;
 	init=0;
@@ -9,27 +25,32 @@ Qx=[vrai, faux]{
 	0->0[estCeFaux];
 };;
 
-Processus=[crit, debut, fin, attente]{
-    etat=4;
+Processus=[crit, debut, fin, attente,transition]{
+    etat=5;
     init=2;
     0=attente;
     1=crit;
     2=debut;
-    3=fin;
-    2->0[vaCrit];
+    3=transition;
+    4=fin;
+    2->3[vaTransition];
+    3->0[vaCrit];
     0->1[execCrit];
-    1->3[fin];
+    1->4[fin];
 };;
 
-Systeme=<Qx Q1, Qx Q2, Processus P1, Processus P2>{
-    <devientVrai,_,vaCrit,_>;
-    <_,estCeFaux,execCrit,_>;
-    <devientFaux,_,fin,_>;
+Systeme=<Processus P1, Processus P2, Qx Q1, Qx Q2, Turn T>{
+    <vaTransition,_,devientVrai,_,_>;
+    <vaCrit,_,_,_,prend1>;
+    <execCrit,_,_,estCeFaux,_>;
+    <execCrit,_,_,_,estCe2>;
+    <fin,_,devientFaux,_,_>;
     
-    <_,devientVrai,_,vaCrit>;
-    <estCeFaux,_,_,execCrit>;
-    <_,devientFaux,_,fin>;
-    
+    <_,vaTransition,_,devientVrai,_>;
+    <_,vaCrit,_,_,prend2>;
+    <_,execCrit,estCeFaux,_,_>;
+    <_,execCrit,_,_,estCe1>;
+    <_,fin,_,devientFaux,_>;
 };;
 
 // Surete 1 : Il existe au moins un chemin menant à la fin des deux processus
@@ -46,4 +67,4 @@ Systeme += equiteForte <- AG((P1.attente -> AF(P1.crit)) &&(P2.attente -> AF(P2.
 // Equité Faible : Il existe un chemin pour lequel p1 ou p2 peut exécuter sa section critique
 Systeme += equiteFaible <- AG((P1.attente -> EF(P1.crit)) && (P2.attente -> EF(P2.crit)));;
 
-todot primitive2CTL.dot Systeme;;
+todot simpleSolutionCTL.dot Systeme;;

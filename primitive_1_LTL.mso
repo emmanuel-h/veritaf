@@ -1,0 +1,108 @@
+Turn=[libre, uti1, uti2]{
+	etat=3;
+	init = 0;
+	0=libre;
+	1=uti1;
+	2=uti2;
+	0->1[prend1];
+	0->2[prend2];
+	1->1[estCe1];
+	2->2[estCe2];
+	1->2[prend2];
+	2->1[prend1];
+};;
+
+Processus=[crit, debut, fin, attente]{
+    etat=4;
+    init=0;
+    0=debut;
+    1=attente;
+    2=crit;
+    3=fin;
+    0->1[vaAttendre];
+    1->2[vaCrit];
+    2->3[execCrit];
+};;
+
+Systeme = <Turn t, Processus P1, Processus P2>{
+    
+    <prend1,vaAttendre,_>;
+    <estCe2,vaCrit,_>;
+    <_,execCrit,_>;
+    
+    <prend2,_,vaAttendre>;
+    <estCe1,_,vaCrit>;
+    <_,_,execCrit>;
+};;
+
+
+//Sureté 1 : Prouve qu'il n'est pas possible de finir avec les deux sections critiques (deadlock)
+//EF(P1.fin && P2.fin);;
+//LTL : F(P1.fin && P2.fin)
+autosurete = {
+	etat = 1;
+	acc = 0;
+	init = 0;
+	0 - !X1 || !X2 -> 0;
+};;
+
+sysauto = automaton Systeme;;
+resultatsurete = sysauto && autosurete[X1 <- P1.fin,X2 <- P2.fin];;
+resultat = reduce resultatsurete;;
+
+todot resultat.dot resultat;;
+
+//todot resultat.dot resultatdeadlock;;
+
+
+// Exclusion mutuelle : Il n'existe pas de chemin menant à deux exécutions critiques simultanées
+//Systeme += exclusionMutuelle <- !(EF(P1.crit && P2.crit));;
+
+autoexclusionmutuelle = {
+	etat = 2;
+	acc = 1;
+	init = 0;
+	0 - !P1 || !P2 -> 0;
+	0 - P1 && P2 -> 1;
+	1 - true -> 1 [0];
+};;
+
+resultatexclusionmutuelle = sysauto && autoexclusionmutuelle[P1 <- P1.crit, P2 <- P2.crit];;
+
+//todot resultat.dot autoexclusionmutuelle;;
+
+resultat = reduce resultatexclusionmutuelle;;
+todot resultat2.dot resultat;;
+
+
+// Equité Forte : Quel que soit le chemin, un processus au moins a effectué sa section critique
+//Systeme += equiteForte <- AG((P1.attente -> AF(P1.crit)) &&(P2.attente -> AF(P2.crit)));;
+// Equité Faible : Il existe un chemin pour lequel p1 ou p2 peut exécuter sa section critique
+//Systeme += equiteFaible <- AG((P1.attente -> EF(P1.crit)) && (P2.attente -> EF(P2.crit)));;
+
+autoequite = {
+	etat = 3;
+	acc = 1;
+	init = 0;
+	0 - true -> 0;
+	0 - A && !A1 -> 1;
+	0 - B && !B1 -> 2;
+	1 - !A1 -> 1 [0];
+	2 - !B1 -> 2 [0];
+};;
+
+//todot resultat.dot autoequite;;
+
+resultatequite = sysauto && autoequite[A <- P1.attente, A1 <- P1.crit, B <- P2.attente, B1 <- P2.crit];;
+resultat = reduce resultatequite;;
+//todot resultat.dot resultat;;
+
+/*
+todot primitive1CTL.dot Systeme;;
+
+/*
+Propriété de sûreté
+Propriété d'exclusion mutuelle
+Propriété d'équité : -Faible EF
+                     -Forte  AF
+*/
